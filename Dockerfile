@@ -1,7 +1,7 @@
-# Version: 0.0.2
+# Version: 0.0.3
 FROM ubuntu:20.04
 
-# Docker image with SABnzbd (git version) running on Python3.9
+# Docker image with SABnzbd3 (git version) running on Python3.9
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
@@ -9,29 +9,24 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 MAINTAINER Sander "superkoning@caiway.net"
 
 RUN apt update -y && apt-get upgrade -y
-RUN apt install sabnzbdplus git par2 rar python3-setuptools python3-pip -y
+RUN apt install python3-pip git rar par2 software-properties-common libffi-dev libssl-dev -y
 
-# python 3.9 stuff:
-RUN apt install software-properties-common -y
+# python3.9:
 RUN add-apt-repository ppa:deadsnakes/ppa
-RUN apt install python3.9 -y
+RUN apt install python3.9 python3.9-distutils python3.9-dev -y
+RUN rm /usr/bin/python3 && ln -s /usr/bin/python3.9 /usr/bin/python3
 
-# stuff to install (compile!) sabyenc3 into python3.9
-RUN apt install python3.9-distutils python3.9-dev libffi-dev libssl-dev -y
-RUN python3.9 -m pip install sabyenc3 --upgrade --force-reinstall
-
-RUN rm /usr/bin/python3
-RUN ln -s /usr/bin/python3.9 /usr/bin/python3
-
+# SABnzbd from git
 RUN cd / && git clone https://github.com/sabnzbd/sabnzbd.git && \
 	cd sabnzbd/ && \
-	pip3 install -r requirements.txt -U && \
+	python3 -m pip install -r requirements.txt -U && \
 	tools/make_mo.py
 
 # monkey patch feedparser
-RUN sed -i 's/base64.decodestring/base64.decodebytes/g' /usr/lib/python3/dist-packages/feedparser.py
+RUN for f in `find / -name 'feedparser.py' | grep dist` ; do sed -i 's/base64.decodestring/base64.decodebytes/g' $f ; done
 
-CMD env LANG=en_US.UTF-8 sabnzbd/SABnzbd.py -b0 --server 0.0.0.0:8080
+
+CMD env LANG=en_US.UTF-8 /sabnzbd/SABnzbd.py -b0 --server 0.0.0.0:8080
 
 RUN echo 'Hi, I am in your container'
 
