@@ -9,10 +9,10 @@ sudo docker build  -t="sabnzbd-py3" .
 # Run
 sudo docker run -p 8080:8080 --name sabnzbd-py3 sabnzbd-py3
 
-# Remove:
+# Remove
 sudo docker rm sabnzbd-py3
 
-# output on stdout
+# Output on stdout
 
 ```
 2020-05-29 20:43:38,441::INFO::[SABnzbd:1089] --------------------------------
